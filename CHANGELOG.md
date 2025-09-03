@@ -1,5 +1,12 @@
 # @willh/git-setup
 
+## 1.0.0
+
+- **BREAKING CHANGE**: Update `core.autocrlf` configuration from `false` to `input` for cross-platform line ending consistency
+- Add `core.safecrlf true` configuration to prevent mixed line endings from being committed
+- This ensures all text files in repositories use LF line endings while preventing accidental mixed line ending commits
+- These changes improve cross-platform collaboration between Windows, Linux, and macOS developers
+
 ## 0.10.0
 
 - Add `init.defaultBranch` configuration set to `main` for new repositories
