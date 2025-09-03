@@ -1,5 +1,9 @@
 # @willh/git-setup
 
+## 0.10.0
+
+- Add `init.defaultBranch` configuration set to `main` for new repositories
+
 ## 0.9.0
 
 - Add support for `-h, --help` and `-v, --version` flags in CLI.
