@@ -37,6 +37,9 @@ git config --global user.email  ${email}
 # 設定打錯命令時 3 秒內會自動做出判斷
 git config --global help.autocorrect 30
 
+# 設定預設分支名稱為 main
+git config --global init.defaultBranch main
+
 # 現在大多編輯器都已經能正確處理 CRLF 字元，不再需要自動轉換了！
 git config --global core.autocrlf false
 
