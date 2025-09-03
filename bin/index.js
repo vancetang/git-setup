@@ -89,7 +89,8 @@ Options:
     await cmd("git config --global help.autocorrect 30");
 
     await cmd("git config --global init.defaultBranch main");
-    await cmd("git config --global core.autocrlf false");
+    await cmd("git config --global core.autocrlf input");
+    await cmd("git config --global core.safecrlf true");
     await cmd("git config --global core.quotepath false");
 
     await cmd("git config --global color.diff auto");
