@@ -40,8 +40,9 @@ git config --global help.autocorrect 30
 # 設定預設分支名稱為 main
 git config --global init.defaultBranch main
 
-# 現在大多編輯器都已經能正確處理 CRLF 字元，不再需要自動轉換了！
-git config --global core.autocrlf false
+# 統一使用 LF 作為行尾字元，避免跨平台協作時的問題
+git config --global core.autocrlf input
+git config --global core.safecrlf true
 
 # 為了能正確顯示 UTF-8 中文字
 git config --global core.quotepath false
@@ -105,18 +106,23 @@ git config --global core.editor notepad
     git config --global core.editor "code-insiders --wait"
     ```
 
-2. `core.autocrlf`
+2. `core.autocrlf` 與 `core.safecrlf`
 
-    在 Windows 平台上安裝 Git 時，預設 `core.autocrlf` 設定值為 `true`，而本工具則設定為 `false` 為主。
+    本工具採用跨平台統一的行尾字元處理方式，設定 `core.autocrlf=input` 與 `core.safecrlf=true`。
 
-    在 Windows 平台上，Git 預設會將檔案的換行符號 `LF` 字元轉換成 `CRLF` 字元，這是因為 Windows 作業系統的檔案換行符號是 `CRLF` 字元，但是在 Linux 與 macOS 作業系統上，檔案換行符號是 `LF` 字元。
+    - `core.autocrlf=input`：將工作目錄中的 CRLF 轉換為 LF 後存入版本庫，檢出時保持 LF 不變
+    - `core.safecrlf=true`：避免混合行尾字元被意外提交到版本庫
 
-    由於現在 Windows 大多數的編輯器都已經能正確處理 `LF` 字元，不再需要自動轉換了。如果你所參與的專案，同時有 Windows 與 macOS 開發人員，我也建議設定為 `false` 以避免發生詭異的問題。
+    由於現在大多數 Windows 編輯器都已經能正確處理 LF 字元，這樣的設定可以確保：
+    - 版本庫內所有文字檔都使用 LF 行尾（跨平台一致）
+    - 避免因不同平台的行尾字元造成的 diff 問題
+    - 配合 `.gitattributes` 可以更精確控制特定檔案的行尾處理
 
-    如果想調整回預設值，可以執行以下指令：
+    如果因特殊需求需要調整回舊版設定，可以執行：
 
     ```sh
-    git config --global core.autocrlf true
+    git config --global core.autocrlf false
+    git config --global core.safecrlf false
     ```
 
 3. `pull.rebase`
@@ -127,6 +133,183 @@ git config --global core.editor notepad
 
     ```sh
     git config --global pull.rebase true
+    ```
+
+## .gitattributes 設定建議
+
+為了更精確地控制檔案的行尾字元處理，建議在專案根目錄建立 `.gitattributes` 檔案：
+
+```txt
+# --- 基本：自動偵測文字檔並正規化至 LF（倉庫內） ---
+* text=auto
+
+# --- 一致化 LF（跨平台工具與 CI 友善） ---
+*.sh         text eol=lf
+*.bash       text eol=lf
+*.zsh        text eol=lf
+*.fish       text eol=lf
+Makefile     text eol=lf
+Dockerfile   text eol=lf
+.dockerignore text eol=lf
+.editorconfig text eol=lf
+.gitattributes text eol=lf
+.gitignore   text eol=lf
+*.md         text eol=lf
+*.txt        text eol=lf
+*.json       text eol=lf
+*.jsonc      text eol=lf
+*.yaml       text eol=lf
+*.yml        text eol=lf
+*.toml       text eol=lf
+*.ini        text eol=lf
+*.cfg        text eol=lf
+*.properties text eol=lf
+*.env        text eol=lf
+*.rc         text eol=lf
+
+# 程式碼檔案
+*.c          text eol=lf
+*.h          text eol=lf
+*.cpp        text eol=lf
+*.hpp        text eol=lf
+*.cc         text eol=lf
+*.cs         text eol=lf
+*.go         text eol=lf
+*.java       text eol=lf
+*.kt         text eol=lf
+*.kts        text eol=lf
+*.js         text eol=lf
+*.jsx        text eol=lf
+*.ts         text eol=lf
+*.tsx        text eol=lf
+*.mjs        text eol=lf
+*.cjs        text eol=lf
+*.py         text eol=lf
+*.rb         text eol=lf
+*.php        text eol=lf
+*.rs         text eol=lf
+*.swift      text eol=lf
+*.m          text eol=lf
+*.mm         text eol=lf
+*.scala      text eol=lf
+*.r          text eol=lf
+*.pl         text eol=lf
+*.lua        text eol=lf
+*.gradle     text eol=lf
+
+# 標記與前端相關
+*.css        text eol=lf
+*.scss       text eol=lf
+*.less       text eol=lf
+*.html       text eol=lf
+*.xhtml      text eol=lf
+*.xml        text eol=lf
+*.svg        text eol=lf
+
+# --- Windows 專用腳本與專案檔案：檢出時使用 CRLF ---
+*.bat        text eol=crlf
+*.cmd        text eol=crlf
+*.ps1        text eol=crlf
+*.sln        text eol=crlf
+*.vcxproj    text eol=crlf
+*.vcproj     text eol=crlf
+*.csproj     text eol=crlf
+*.vbproj     text eol=crlf
+*.props      text eol=crlf
+*.targets    text eol=crlf
+
+# --- 二進位檔案：停用行尾與 diff ---
+# 影像
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+*.psd  binary
+*.ai   binary
+*.eps  binary
+
+# 影音
+*.mp3  binary
+*.wav  binary
+*.flac binary
+*.ogg  binary
+*.mp4  binary
+*.mov  binary
+*.avi  binary
+*.mkv  binary
+
+# 字型
+*.ttf  binary
+*.otf  binary
+*.woff binary
+*.woff2 binary
+
+# 文件與試算表
+*.pdf  binary
+*.doc  binary
+*.docx binary
+*.xls  binary
+*.xlsx binary
+*.ppt  binary
+*.pptx binary
+
+# 壓縮與封裝
+*.zip  binary
+*.7z   binary
+*.rar  binary
+*.gz   binary
+*.bz2  binary
+*.tar  binary
+*.jar  binary
+*.apk  binary
+*.ipa  binary
+
+# 執行檔與目標檔
+*.exe  binary
+*.dll  binary
+*.pdb  binary
+*.so   binary
+*.dylib binary
+*.a    binary
+*.lib  binary
+*.o    binary
+
+# 資料庫與快取
+*.sqlite binary
+*.db     binary
+
+# --- 降噪：縮小無意義 diff ---
+*.min.js -diff
+*.min.css -diff
+*.map    -diff
+
+# --- 選用：Git LFS（如已啟用，再解除註解） ---
+#*.psd filter=lfs diff=lfs merge=lfs -text
+#*.mp4 filter=lfs diff=lfs merge=lfs -text
+#*.zip filter=lfs diff=lfs merge=lfs -text
+
+# --- 選用：打包時不包含開發輔助檔 ---
+#/.github        export-ignore
+#/.gitignore     export-ignore
+#/.gitattributes export-ignore
+#/.editorconfig  export-ignore
+```
+
+### 使用方式
+
+- **新專案**
+
+    將上述檔案加入後直接提交，版本庫內會以 LF 正規化文字行尾，檢出時依規則輸出 LF 或 CRLF。
+
+- **既有專案**
+
+    加入 `.gitattributes` 後，執行以下命令套用正規化並提交一次性變更：
+
+    ```sh
+    git add --renormalize .
+    git commit -m "chore: normalize line endings via .gitattributes"
     ```
 
 ## 提供建議
