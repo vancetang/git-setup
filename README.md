@@ -72,13 +72,15 @@ git config --global alias.alias "config --get-regexp ^alias\."
 # 必須是 Windows 平台才會執行以下設定
 git config --global alias.ignore "!gi() { curl -sL https://www.gitignore.io/api/$@ ;}; gi"
 git config --global alias.iac "!giac() { git init -b main && git add . && git commit -m 'Initial commit' ;}; giac"
-git config --global alias.acp "!gacp() { git add . && git commit --amend -C HEAD && git push -f ;}; gacp"
+git config --global alias.acp "!gacp() { git add . && git commit --reuse-message=HEAD --amend && git push -f ;}; gacp"
+git config --global alias.aca "!gaca() { git add . && git commit --reuse-message=HEAD --amend ;}; gaca"
 git config --global alias.cc  "!grcc() { git reset --hard && git clean -fdx ;}; read -p 'Do you want to run the <<< git reset --hard && git clean -fdx >>> command? (Y/N) ' answer && [[ $answer == [Yy] ]] && grcc"
 
 # 必須是 Linux/macOS 平台才會執行以下設定
 git config --global alias.ignore '!'"gi() { curl -sL https://www.gitignore.io/api/\$@ ;}; gi"
 git config --global alias.iac '!'"giac() { git init -b main && git add . && git commit -m 'Initial commit' ;}; giac"
-git config --global alias.acp '!'"gacp() { git add . && git commit --amend -C HEAD && git push -f ;}; gacp"
+git config --global alias.acp '!'"gacp() { git add . && git commit --reuse-message=HEAD --amend && git push -f ;}; gacp"
+git config --global alias.aca '!'"gaca() { git add . && git commit --reuse-message=HEAD --amend ;}; gaca"
 git config --global alias.cc  '!'"grcc() { git reset --hard && git clean -fdx ;}; read -p 'Do you want to run the <<< git reset --hard && git clean -fdx >>> command? (Y/N) ' answer && [[ $answer == [Yy] ]] && grcc"
 
 # 必須是 Windows 平台且有安裝 TortoiseGit 才會設定 tlog 這個 alias
