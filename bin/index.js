@@ -134,11 +134,18 @@ Options:
         await cmd("git config --global alias.cc '!'\"grcc() { git reset --hard && git clean -fdx ;}; read -p 'Do you want to run the <<< git reset --hard && git clean -fdx >>> command? (Y/N) ' answer && [[ $answer == [Yy] ]] && grcc\"");
     }
 
-    // git config --global alias.acp "!gacp() { git add . && git commit --amend -C HEAD && git push -f ;}; gacp"
+    // git config --global alias.acp "!gacp() { git add . && git commit --reuse-message=HEAD --amend && git push -f ;}; gacp"
     if (os === 'win32') {
-        await cmd("git config --global alias.acp \"!gacp() { git add . && git commit --amend -C HEAD && git push -f ;}; gacp\"");
+        await cmd("git config --global alias.acp \"!gacp() { git add . && git commit --reuse-message=HEAD --amend && git push -f ;}; gacp\"");
     } else {
-        await cmd("git config --global alias.acp '!'\"gacp() { git add . && git commit --amend -C HEAD && git push -f ;}; gacp\"");
+        await cmd("git config --global alias.acp '!'\"gacp() { git add . && git commit --reuse-message=HEAD --amend && git push -f ;}; gacp\"");
+    }
+
+    // git config --global alias.aca "!gaca() { git add . && git commit --reuse-message=HEAD --amend ;}; gaca"
+    if (os === 'win32') {
+        await cmd("git config --global alias.aca \"!gaca() { git add . && git commit --reuse-message=HEAD --amend ;}; gaca\"");
+    } else {
+        await cmd("git config --global alias.aca '!'\"gaca() { git add . && git commit --reuse-message=HEAD --amend ;}; gaca\"");
     }
 
     if (os === 'win32' && fs.existsSync('C:/PROGRA~1/TortoiseGit/bin/TortoiseGitProc.exe')) {
