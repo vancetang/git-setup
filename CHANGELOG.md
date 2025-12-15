@@ -1,5 +1,31 @@
 # @willh/git-setup
 
+## 1.3.0
+
+- Add `--interactive` (`-i`) flag for interactive confirmation of each Git configuration command
+- Add `readKey()` function to read single keypress for better user interaction
+- Add `cmdWithConfirm()` helper function to handle interactive execution flow
+- Improve user experience by allowing granular control over which settings to apply
+
+## 1.2.0
+
+- Add `git ac` alias that integrates with [aichat](https://github.com/sigoden/aichat) to automatically generate high-quality, technical, precise and concise Traditional Chinese commit messages following Conventional Commits 1.0.0 format
+  - Automatically detects staged/unstaged changes and runs `git add -A` if needed
+  - Checks if running in a git repository and if `aichat` command is available
+  - Uses AI to analyze diff and generate commit message, then auto-commits
+- Add `git undo` alias for quick undo of last commit while keeping all changes
+  - Executes `git reset HEAD~` to undo the last commit
+  - Preserves all changes in working directory
+- Update README.md with detailed usage instructions for `git ac` and `git undo`
+- Add `scripts.start` command in package.json
+
+## 1.1.0
+
+- Add `git aca` alias for `git add . && git commit --reuse-message=HEAD --amend`
+  - Stages all changes and amends to the last commit reusing the same commit message
+- Update `git acp` alias to use `--reuse-message=HEAD` instead of `-C HEAD` for better clarity
+  - New command: `git add . && git commit --reuse-message=HEAD --amend && git push -f`
+
 ## 1.0.0
 
 - **BREAKING CHANGE**: Update `core.autocrlf` configuration from `false` to `input` for cross-platform line ending consistency
