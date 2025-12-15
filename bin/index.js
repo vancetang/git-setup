@@ -5,6 +5,27 @@ const exec = util.promisify(require('child_process').exec);
 const os = require('os').platform();
 const fs = require('fs');
 
+// Function to read single keypress
+function readKey() {
+    return new Promise((resolve, reject) => {
+        const wasRaw = process.stdin.isRaw;
+        process.stdin.setRawMode(true);
+        process.stdin.resume();
+        process.stdin.once('data', (data) => {
+            process.stdin.setRawMode(wasRaw);
+            process.stdin.pause();
+
+            // Handle Ctrl+C
+            if (data[0] === 3) {
+                console.log('\n已取消');
+                process.exit(0);
+            }
+
+            resolve(data.toString());
+        });
+    });
+}
+
 (async function () {
 
     const readline = require('readline').createInterface({
@@ -22,6 +43,7 @@ const fs = require('fs');
     const args = process.argv.slice(2);
     let name = '';
     let email = '';
+    let interactive = false;
 
     // Handle help flag
     if (args.includes('--help') || args.includes('-h')) {
@@ -31,6 +53,7 @@ Usage: npx @willh/git-setup [options]
 Options:
   --name <name>       Set Git user.name
   --email <email>     Set Git user.email
+  -i, --interactive   Enable interactive confirmation for each setting
   -h, --help          Display this help message
   -v, --version       Display version information
 `);
@@ -52,6 +75,8 @@ Options:
         } else if (args[i] === '--email' && i + 1 < args.length) {
             email = args[i + 1];
             i++; // Skip the next argument as it's the value
+        } else if (args[i] === '--interactive' || args[i] === '-i') {
+            interactive = true;
         }
     }
 
@@ -86,32 +111,32 @@ Options:
     await cmd(`git config --global user.name  ${name}`);
     await cmd(`git config --global user.email  ${email}`);
 
-    await cmd("git config --global help.autocorrect 30");
+    await cmdWithConfirm("git config --global help.autocorrect 30", interactive, ask);
 
-    await cmd("git config --global init.defaultBranch main");
-    await cmd("git config --global core.autocrlf input");
-    await cmd("git config --global core.safecrlf true");
-    await cmd("git config --global core.quotepath false");
+    await cmdWithConfirm("git config --global init.defaultBranch main", interactive, ask);
+    await cmdWithConfirm("git config --global core.autocrlf input", interactive, ask);
+    await cmdWithConfirm("git config --global core.safecrlf true", interactive, ask);
+    await cmdWithConfirm("git config --global core.quotepath false", interactive, ask);
 
-    await cmd("git config --global color.diff auto");
-    await cmd("git config --global color.status auto");
-    await cmd("git config --global color.branch auto");
+    await cmdWithConfirm("git config --global color.diff auto", interactive, ask);
+    await cmdWithConfirm("git config --global color.status auto", interactive, ask);
+    await cmdWithConfirm("git config --global color.branch auto", interactive, ask);
 
-    await cmd("git config --global alias.ci   commit");
-    await cmd("git config --global alias.cm   \"commit --amend -C HEAD\"");
-    await cmd("git config --global alias.co   checkout");
-    await cmd("git config --global alias.st   status");
-    await cmd("git config --global alias.sts  \"status -s\"");
-    await cmd("git config --global alias.br   branch");
-    await cmd("git config --global alias.re   remote");
-    await cmd("git config --global alias.di   diff");
-    await cmd("git config --global alias.type \"cat-file -t\"");
-    await cmd("git config --global alias.dump \"cat-file -p\"");
-    await cmd("git config --global alias.lo   \"log --oneline\"");
-    await cmd("git config --global alias.ls   \"log --show-signature\"");
-    await cmd("git config --global alias.ll   \"log --pretty=format:'%h %ad | %s%d [%Cgreen%an%Creset]' --graph --date=short\"");
-    await cmd("git config --global alias.lg   \"log --graph --pretty=format:'%Cred%h%Creset %ad |%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset [%Cgreen%an%Creset]' --abbrev-commit --date=short\"");
-    await cmd("git config --global alias.alias \"config --get-regexp ^alias\\.\"");
+    await cmdWithConfirm("git config --global alias.ci   commit", interactive, ask);
+    await cmdWithConfirm("git config --global alias.cm   \"commit --amend -C HEAD\"", interactive, ask);
+    await cmdWithConfirm("git config --global alias.co   checkout", interactive, ask);
+    await cmdWithConfirm("git config --global alias.st   status", interactive, ask);
+    await cmdWithConfirm("git config --global alias.sts  \"status -s\"", interactive, ask);
+    await cmdWithConfirm("git config --global alias.br   branch", interactive, ask);
+    await cmdWithConfirm("git config --global alias.re   remote", interactive, ask);
+    await cmdWithConfirm("git config --global alias.di   diff", interactive, ask);
+    await cmdWithConfirm("git config --global alias.type \"cat-file -t\"", interactive, ask);
+    await cmdWithConfirm("git config --global alias.dump \"cat-file -p\"", interactive, ask);
+    await cmdWithConfirm("git config --global alias.lo   \"log --oneline\"", interactive, ask);
+    await cmdWithConfirm("git config --global alias.ls   \"log --show-signature\"", interactive, ask);
+    await cmdWithConfirm("git config --global alias.ll   \"log --pretty=format:'%h %ad | %s%d [%Cgreen%an%Creset]' --graph --date=short\"", interactive, ask);
+    await cmdWithConfirm("git config --global alias.lg   \"log --graph --pretty=format:'%Cred%h%Creset %ad |%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset [%Cgreen%an%Creset]' --abbrev-commit --date=short\"", interactive, ask);
+    await cmdWithConfirm("git config --global alias.alias \"config --get-regexp ^alias\\.\"", interactive, ask);
 
     // --- add: alias.ac / alias.undo (cross-platform) ---
     const aliasAc = `!f() { if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then echo "[ac] skip: git rev-parse --is-inside-work-tree → not a git repository"; exit 0; fi; if ! command -v aichat >/dev/null 2>&1; then echo "[ac] skip: command aichat not found"; exit 0; fi; if git diff --cached --quiet; then echo "[ac] check: git diff --cached --quiet → no staged changes"; if git diff --quiet; then echo "[ac] check: git diff --quiet → no unstaged changes"; echo "[ac] skip: nothing to commit"; exit 0; fi; echo "[ac] action: git add -A"; git add -A; fi; diff=$(git diff --cached); msg=$(printf "%s" "$diff" | aichat "依據 diff 產生高解析度、技術導向、精準且簡潔的繁體中文 Git commit 訊息。採用 Conventional Commits 1.0.0 格式撰寫。不得包含多餘語句，只輸出 commit title 與必要的 body。"); echo "[ac] action: git commit"; git commit -m "$msg"; }; f`;
@@ -120,54 +145,54 @@ Options:
     const escapeForSingleQuotes = (s) => s.replace(/'/g, `'\\''`);
 
     if (os === 'win32') {
-        await cmd(`git config --global alias.ac "${aliasAc.replace(/"/g, '\\"')}"`);
-        await cmd(`git config --global alias.undo "${aliasUndo.replace(/"/g, '\\"')}"`);
+        await cmdWithConfirm(`git config --global alias.ac "${aliasAc.replace(/"/g, '\\"')}"`, interactive, ask);
+        await cmdWithConfirm(`git config --global alias.undo "${aliasUndo.replace(/"/g, '\\"')}"`, interactive, ask);
     } else {
-        await cmd(`git config --global alias.ac '${escapeForSingleQuotes(aliasAc)}'`);
-        await cmd(`git config --global alias.undo '${escapeForSingleQuotes(aliasUndo)}'`);
+        await cmdWithConfirm(`git config --global alias.ac '${escapeForSingleQuotes(aliasAc)}'`, interactive, ask);
+        await cmdWithConfirm(`git config --global alias.undo '${escapeForSingleQuotes(aliasUndo)}'`, interactive, ask);
     }
 
     // git config --global alias.ignore "!gi() { curl -sL https://www.gitignore.io/api/\$@ ;}; gi"
     if (os === 'win32') {
-        await cmd("git config --global alias.ignore \"!gi() { curl -sL https://www.gitignore.io/api/$@ ;}; gi\"");
+        await cmdWithConfirm("git config --global alias.ignore \"!gi() { curl -sL https://www.gitignore.io/api/$@ ;}; gi\"", interactive, ask);
     } else {
-        await cmd("git config --global alias.ignore '!'\"gi() { curl -sL https://www.gitignore.io/api/\\$@ ;}; gi\"");
+        await cmdWithConfirm("git config --global alias.ignore '!'\"gi() { curl -sL https://www.gitignore.io/api/\\$@ ;}; gi\"", interactive, ask);
     }
 
     // git config --global alias.iac  "!giac() { git init && git add . && git commit -m 'Initial commit' ;}; giac"
     if (os === 'win32') {
-        await cmd("git config --global alias.iac \"!giac() { git init -b main && git add . && git commit -m 'Initial commit' ;}; giac\"");
+        await cmdWithConfirm("git config --global alias.iac \"!giac() { git init -b main && git add . && git commit -m 'Initial commit' ;}; giac\"", interactive, ask);
     } else {
-        await cmd("git config --global alias.iac '!'\"giac() { git init -b main && git add . && git commit -m 'Initial commit' ;}; giac\"");
+        await cmdWithConfirm("git config --global alias.iac '!'\"giac() { git init -b main && git add . && git commit -m 'Initial commit' ;}; giac\"", interactive, ask);
     }
 
     // git config --global alias.cc  "!grcc() { git reset --hard && git clean -fdx ;}; read -p 'Do you want to run the <<< git reset --hard && git clean -fdx >>> command? (Y/N) ' answer && [[ $answer == [Yy] ]] && grcc"
     if (os === 'win32') {
-        await cmd("git config --global alias.cc \"!grcc() { git reset --hard && git clean -fdx ;}; read -p 'Do you want to run the <<< git reset --hard && git clean -fdx >>> command? (Y/N) ' answer && [[ $answer == [Yy] ]] && grcc\"");
+        await cmdWithConfirm("git config --global alias.cc \"!grcc() { git reset --hard && git clean -fdx ;}; read -p 'Do you want to run the <<< git reset --hard && git clean -fdx >>> command? (Y/N) ' answer && [[ $answer == [Yy] ]] && grcc\"", interactive, ask);
     } else {
-        await cmd("git config --global alias.cc '!'\"grcc() { git reset --hard && git clean -fdx ;}; read -p 'Do you want to run the <<< git reset --hard && git clean -fdx >>> command? (Y/N) ' answer && [[ $answer == [Yy] ]] && grcc\"");
+        await cmdWithConfirm("git config --global alias.cc '!'\"grcc() { git reset --hard && git clean -fdx ;}; read -p 'Do you want to run the <<< git reset --hard && git clean -fdx >>> command? (Y/N) ' answer && [[ $answer == [Yy] ]] && grcc\"", interactive, ask);
     }
 
     // git config --global alias.acp "!gacp() { git add . && git commit --reuse-message=HEAD --amend && git push -f ;}; gacp"
     if (os === 'win32') {
-        await cmd("git config --global alias.acp \"!gacp() { git add . && git commit --reuse-message=HEAD --amend && git push -f ;}; gacp\"");
+        await cmdWithConfirm("git config --global alias.acp \"!gacp() { git add . && git commit --reuse-message=HEAD --amend && git push -f ;}; gacp\"", interactive, ask);
     } else {
-        await cmd("git config --global alias.acp '!'\"gacp() { git add . && git commit --reuse-message=HEAD --amend && git push -f ;}; gacp\"");
+        await cmdWithConfirm("git config --global alias.acp '!'\"gacp() { git add . && git commit --reuse-message=HEAD --amend && git push -f ;}; gacp\"", interactive, ask);
     }
 
     // git config --global alias.aca "!gaca() { git add . && git commit --reuse-message=HEAD --amend ;}; gaca"
     if (os === 'win32') {
-        await cmd("git config --global alias.aca \"!gaca() { git add . && git commit --reuse-message=HEAD --amend ;}; gaca\"");
+        await cmdWithConfirm("git config --global alias.aca \"!gaca() { git add . && git commit --reuse-message=HEAD --amend ;}; gaca\"", interactive, ask);
     } else {
-        await cmd("git config --global alias.aca '!'\"gaca() { git add . && git commit --reuse-message=HEAD --amend ;}; gaca\"");
+        await cmdWithConfirm("git config --global alias.aca '!'\"gaca() { git add . && git commit --reuse-message=HEAD --amend ;}; gaca\"", interactive, ask);
     }
 
     if (os === 'win32' && fs.existsSync('C:/PROGRA~1/TortoiseGit/bin/TortoiseGitProc.exe')) {
-        await cmd("git config --global alias.tlog \"!start 'C:\\PROGRA~1\\TortoiseGit\\bin\\TortoiseGitProc.exe' /command:log /path:.");
+        await cmdWithConfirm("git config --global alias.tlog \"!start 'C:\\PROGRA~1\\TortoiseGit\\bin\\TortoiseGitProc.exe' /command:log /path:.", interactive, ask);
     }
 
     if (os === 'win32') {
-        await cmd("git config --global core.editor notepad");
+        await cmdWithConfirm("git config --global core.editor notepad", interactive, ask);
     }
 
     if (!process.env.LC_ALL) {
@@ -208,4 +233,17 @@ async function cmd(command) {
 function validateEmail(email) {
     var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(String(email).toLowerCase());
+}
+
+async function cmdWithConfirm(command, interactive, ask) {
+    if (interactive) {
+        process.stdout.write(`執行此命令嗎？ ${command} (y/n): `);
+        const key = await readKey();
+        console.log(); // Just print newline without echoing the key
+        if (key.toLowerCase() !== 'y') {
+            console.log('已跳過');
+            return;
+        }
+    }
+    await cmd(command);
 }
