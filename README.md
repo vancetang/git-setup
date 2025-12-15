@@ -137,6 +137,34 @@ git config --global core.editor notepad
     git config --global pull.rebase true
     ```
 
+4. `alias.ac` - AI 自動產生 commit 訊息
+
+    此工具會自動設定 `git ac` 命令,當你的工作目錄有變更時,它會:
+    - 自動偵測是否有已暫存 (staged) 的變更,若無則自動執行 `git add -A`
+    - 呼叫 `aichat` 工具分析 diff 內容
+    - 使用 AI 產生符合 Conventional Commits 1.0.0 格式的繁體中文 commit 訊息
+    - 自動執行 commit
+
+    **前置需求**: 需要先安裝 [aichat](https://github.com/sigoden/aichat) 命令列工具
+
+    ```sh
+    # 使用範例
+    git ac  # 自動分析變更並產生 commit 訊息
+    ```
+
+5. `alias.undo` - 撤銷上一次 commit
+
+    此工具會自動設定 `git undo` 命令,可快速撤銷上一次的 commit,但保留所有變更:
+
+    ```sh
+    git undo  # 等同於 git reset HEAD~
+    ```
+
+    這個命令會:
+    - 撤銷最後一次 commit
+    - 保留所有檔案變更 (變更會回到 unstaged 狀態)
+    - 適合用於修正 commit 訊息或重新整理變更
+
 ## .gitattributes 設定建議
 
 為了更精確地控制檔案的行尾字元處理，建議在專案根目錄建立 `.gitattributes` 檔案：

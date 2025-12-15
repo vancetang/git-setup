@@ -113,6 +113,20 @@ Options:
     await cmd("git config --global alias.lg   \"log --graph --pretty=format:'%Cred%h%Creset %ad |%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset [%Cgreen%an%Creset]' --abbrev-commit --date=short\"");
     await cmd("git config --global alias.alias \"config --get-regexp ^alias\\.\"");
 
+    // --- add: alias.ac / alias.undo (cross-platform) ---
+    const aliasAc = `!f() { if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then echo "[ac] skip: git rev-parse --is-inside-work-tree → not a git repository"; exit 0; fi; if ! command -v aichat >/dev/null 2>&1; then echo "[ac] skip: command aichat not found"; exit 0; fi; if git diff --cached --quiet; then echo "[ac] check: git diff --cached --quiet → no staged changes"; if git diff --quiet; then echo "[ac] check: git diff --quiet → no unstaged changes"; echo "[ac] skip: nothing to commit"; exit 0; fi; echo "[ac] action: git add -A"; git add -A; fi; diff=$(git diff --cached); msg=$(printf "%s" "$diff" | aichat "依據 diff 產生高解析度、技術導向、精準且簡潔的繁體中文 Git commit 訊息。採用 Conventional Commits 1.0.0 格式撰寫。不得包含多餘語句，只輸出 commit title 與必要的 body。"); echo "[ac] action: git commit"; git commit -m "$msg"; }; f`;
+    const aliasUndo = `!f() { if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then echo "[undo] skip: not a git repository"; exit 0; fi; echo "[undo] Undo Last Commit: git reset HEAD~"; git reset HEAD~; }; f`;
+
+    const escapeForSingleQuotes = (s) => s.replace(/'/g, `'\\''`);
+
+    if (os === 'win32') {
+        await cmd(`git config --global alias.ac "${aliasAc.replace(/"/g, '\\"')}"`);
+        await cmd(`git config --global alias.undo "${aliasUndo.replace(/"/g, '\\"')}"`);
+    } else {
+        await cmd(`git config --global alias.ac '${escapeForSingleQuotes(aliasAc)}'`);
+        await cmd(`git config --global alias.undo '${escapeForSingleQuotes(aliasUndo)}'`);
+    }
+
     // git config --global alias.ignore "!gi() { curl -sL https://www.gitignore.io/api/\$@ ;}; gi"
     if (os === 'win32') {
         await cmd("git config --global alias.ignore \"!gi() { curl -sL https://www.gitignore.io/api/$@ ;}; gi\"");
