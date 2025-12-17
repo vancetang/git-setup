@@ -1,5 +1,11 @@
 # @willh/git-setup
 
+## 1.3.1
+
+- Update `git ac` alias to operate silently without debug logging
+- Add untracked files detection to `git ac` alias using `git ls-files --others --exclude-standard`
+- Improve exit logic: only proceed when there are actual changes (staged, unstaged, or untracked files)
+
 ## 1.3.0
 
 - Add `--interactive` (`-i`) flag for interactive confirmation of each Git configuration command
