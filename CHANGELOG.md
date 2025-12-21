@@ -1,5 +1,13 @@
 # @willh/git-setup
 
+## 1.3.2
+
+- Add 'q' key support to quit interactive mode at any confirmation prompt
+- Show current Git user.name and user.email in prompts with sensible defaults
+- Allow pressing Enter to keep current Git configuration values without re-entering
+- Add feedback message "已設定" after each successful configuration in interactive mode
+- Update `git ac` alias to display last commit info after creating commit
+
 ## 1.3.1
 
 - Update `git ac` alias to operate silently without debug logging

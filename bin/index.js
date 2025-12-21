@@ -21,6 +21,13 @@ function readKey() {
                 process.exit(0);
             }
 
+            // Handle 'q' key to quit
+            if (data.toString().toLowerCase() === 'q') {
+                console.log();
+                console.log('已取消');
+                process.exit(0);
+            }
+
             resolve(data.toString());
         });
     });
@@ -85,12 +92,32 @@ Options:
         console.log('以下將會協助你進行 Git 版控環境設定：');
         console.log();
 
+        // Read current Git user.name and user.email
+        let currentName = '';
+        let currentEmail = '';
+        try {
+            const { stdout: nameStdout } = await exec('git config --global user.name');
+            currentName = nameStdout.trim();
+        } catch (err) {
+            // Ignore error if not set
+        }
+        try {
+            const { stdout: emailStdout } = await exec('git config --global user.email');
+            currentEmail = emailStdout.trim();
+        } catch (err) {
+            // Ignore error if not set
+        }
+
         if (!name) {
-            name = await ask(`請問您的顯示名稱？`);
+            const namePrompt = currentName ? `請問您的顯示名稱？ [${currentName}]` : `請問您的顯示名稱？`;
+            const input = await ask(namePrompt);
+            name = input.trim() || currentName;
         }
 
         if (!email) {
-            email = await ask(`請問您的 E-mail 地址？`);
+            const emailPrompt = currentEmail ? `請問您的 E-mail 地址？ [${currentEmail}]` : `請問您的 E-mail 地址？`;
+            const input = await ask(emailPrompt);
+            email = input.trim() || currentEmail;
         }
     }
 
@@ -139,7 +166,7 @@ Options:
     await cmdWithConfirm("git config --global alias.alias \"config --get-regexp ^alias\\.\"", interactive, ask);
 
     // --- add: alias.ac / alias.undo (cross-platform) ---
-    const aliasAc = `!f() { if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then exit 0; fi; if ! command -v aichat >/dev/null 2>&1; then exit 0; fi; if git diff --cached --quiet; then if git diff --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then exit 0; fi; git add -A; fi; diff=$(git diff --cached); msg=$(printf "%s" "$diff" | aichat "依據 diff 產生高解析度、技術導向、精準且簡潔的繁體中文 Git commit 訊息。採用 Conventional Commits 1.0.0 格式撰寫。不得包含多餘語句，只輸出 commit title 與必要的 body。"); git commit -m "$msg"; }; f`;
+    const aliasAc = `!f() { if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then exit 0; fi; if ! command -v aichat >/dev/null 2>&1; then exit 0; fi; if git diff --cached --quiet; then if git diff --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then exit 0; fi; git add -A; fi; diff=$(git diff --cached); msg=$(printf "%s" "$diff" | aichat "依據 diff 產生高解析度、技術導向、精準且簡潔的繁體中文 Git commit 訊息。採用 Conventional Commits 1.0.0 格式撰寫。不得包含多餘語句，只輸出 commit title 與必要的 body。"); git commit -m "$msg" && git log -1; }; f`;
     const aliasUndo = `!f() { if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then echo "[undo] skip: not a git repository"; exit 0; fi; echo "[undo] Undo Last Commit: git reset HEAD~"; git reset HEAD~; }; f`;
 
     const escapeForSingleQuotes = (s) => s.replace(/'/g, `'\\''`);
@@ -237,7 +264,7 @@ function validateEmail(email) {
 
 async function cmdWithConfirm(command, interactive, ask) {
     if (interactive) {
-        process.stdout.write(`執行此命令嗎？ ${command} (y/n): `);
+        process.stdout.write(`執行此命令嗎？ ${command} (y/n/q): `);
         const key = await readKey();
         console.log(); // Just print newline without echoing the key
         if (key.toLowerCase() !== 'y') {
@@ -246,4 +273,7 @@ async function cmdWithConfirm(command, interactive, ask) {
         }
     }
     await cmd(command);
+    if (interactive) {
+        console.log('已設定');
+    }
 }
