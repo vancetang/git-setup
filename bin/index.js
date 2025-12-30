@@ -166,7 +166,7 @@ Options:
     await cmdWithConfirm("git config --global alias.alias \"config --get-regexp ^alias\\.\"", interactive, ask);
 
     // --- add: alias.ac / alias.undo (cross-platform) ---
-    const aliasAc = `!f() { if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then exit 0; fi; if ! command -v aichat >/dev/null 2>&1; then exit 0; fi; if git diff --cached --quiet; then if git diff --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then exit 0; fi; git add -A; fi; diff=$(git diff --cached); msg=$(printf "%s" "$diff" | aichat "依據 diff 產生高解析度、技術導向、精準且簡潔的繁體中文 Git commit 訊息。採用 Conventional Commits 1.0.0 格式撰寫。不得包含多餘語句，只輸出 commit title 與必要的 body。"); git commit -m "$msg" && git log -1; }; f`;
+    const aliasAc = `!f() { if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then exit 0; fi; if ! command -v aichat >/dev/null 2>&1; then exit 0; fi; if git diff --cached --quiet; then if git diff --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then exit 0; fi; git add -A; fi; diff=$(git diff --cached); msg=$(printf "%s" "$diff" | aichat "依據 diff 產生高解析度、技術導向、精準且簡潔的繁體中文 Git commit 訊息。採用 Conventional Commits 1.0.0 格式撰寫。不得包含多餘語句，只輸出 commit title 與必要的 body。"); git commit -m "$msg" && git --no-pager log -1; }; f`;
     const aliasUndo = `!f() { if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then echo "[undo] skip: not a git repository"; exit 0; fi; echo "[undo] Undo Last Commit: git reset HEAD~"; git reset HEAD~; }; f`;
 
     const escapeForSingleQuotes = (s) => s.replace(/'/g, `'\\''`);

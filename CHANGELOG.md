@@ -1,5 +1,9 @@
 # @willh/git-setup
 
+## 1.3.3
+
+- Add '--no-pager' to `git ac` alias to prevent paging of commit info output
+
 ## 1.3.2
 
 - Add 'q' key support to quit interactive mode at any confirmation prompt

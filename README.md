@@ -143,7 +143,7 @@ git config --global core.editor notepad
     - 自動偵測是否有已暫存 (staged) 的變更,若無則自動執行 `git add -A`
     - 呼叫 `aichat` 工具分析 diff 內容
     - 使用 AI 產生符合 Conventional Commits 1.0.0 格式的繁體中文 commit 訊息
-    - 自動執行 commit
+    - 自動執行 commit 並顯示最近一次的 commit log
 
     **前置需求**: 需要先安裝 [aichat](https://github.com/sigoden/aichat) 命令列工具
 
