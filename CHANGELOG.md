@@ -1,5 +1,13 @@
 # @willh/git-setup
 
+## 1.3.4
+
+- Enhance `git ac` alias with improved diff filtering:
+  - Add 50,000 character limit check for diff content to prevent overwhelming AI analysis
+  - Exclude minified files from diff analysis (*.min.js, *.min.css, *.min.*.js, *.min.*.css, *-min.js, *-min.css, *.bundle.js, *.bundle.min.js)
+  - Exclude binary files from diff using `--diff-filter=d` flag
+  - Add informative error messages when diff is too large or contains only excluded files
+
 ## 1.3.3
 
 - Add '--no-pager' to `git ac` alias to prevent paging of commit info output
