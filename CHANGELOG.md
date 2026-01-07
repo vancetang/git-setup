@@ -1,5 +1,14 @@
 # @willh/git-setup
 
+## 1.4.0
+
+- Add `git attributes` alias to display recommended `.gitattributes` file content
+  - Use `git attributes > .gitattributes` to quickly create the file in your project
+  - Cross-platform support for both Windows and Linux/macOS
+- Update README.md with documentation for `-i` interactive mode usage
+- Add `.gitattributes` file to the project itself following the recommended configuration
+- Add comprehensive documentation for the new `git attributes` alias
+
 ## 1.3.4
 
 - Enhance `git ac` alias with improved diff filtering:
