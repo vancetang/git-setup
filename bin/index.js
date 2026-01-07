@@ -165,6 +165,9 @@ Options:
     await cmdWithConfirm("git config --global alias.lg   \"log --graph --pretty=format:'%Cred%h%Creset %ad |%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset [%Cgreen%an%Creset]' --abbrev-commit --date=short\"", interactive, ask);
     await cmdWithConfirm("git config --global alias.alias \"config --get-regexp ^alias\\.\"", interactive, ask);
 
+    // Helper function for escaping single quotes in shell strings
+    const escapeForSingleQuotes = (s) => s.replace(/'/g, `'\\''`);
+
     // --- add: alias.attributes (cross-platform) ---
     const aliasAttributes = `!f() { cat <<'EOF'
 # --- 基本：自動偵測文字檔並正規化至 LF（倉庫內） ---
@@ -324,8 +327,6 @@ Dockerfile   text eol=lf
 #/.editorconfig  export-ignore
 EOF
 }; f`;
-
-    const escapeForSingleQuotes = (s) => s.replace(/'/g, `'\\''`);
     
     if (os === 'win32') {
         await cmdWithConfirm(`git config --global alias.attributes "${aliasAttributes.replace(/"/g, '\\"')}"`, interactive, ask);
