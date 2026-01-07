@@ -19,12 +19,21 @@ npx @willh/git-setup
 npx @willh/git-setup --name "Your Name" --email your.email@example.com
 ```
 
+或者使用互動模式，逐項確認每個設定：
+
+```sh
+npx @willh/git-setup -i
+```
+
 - 設定過程會詢問你的 `user.name` 與 `user.email` 資訊
   - 如果在命令列中使用 `--name` 與 `--email` 參數，則不會詢問
   - Email 會進行格式驗證，格式錯誤會拒絕設定下去
 - 所有 Git 設定都會以 `--global` 為主 (`~/.gitconfig`)
 - Windows 平台會自動設定 `LC_ALL` 與 `LANG` 使用者環境變數
   - Linux, macOS 平台會提醒進行設定
+- 使用 `-i` 或 `--interactive` 參數可進入互動模式
+  - 每個設定會逐一詢問是否要執行
+  - 可按 `y` 確認執行、`n` 跳過該設定、`q` 離開程式
 
 ## 設定內容
 
@@ -68,6 +77,7 @@ git config --global alias.ls   "log --show-signature"
 git config --global alias.ll   "log --pretty=format:'%h %ad | %s%d [%Cgreen%an%Creset]' --graph --date=short"
 git config --global alias.lg   "log --graph --pretty=format:'%Cred%h%Creset %ad |%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset [%Cgreen%an%Creset]' --abbrev-commit --date=short"
 git config --global alias.alias "config --get-regexp ^alias\."
+git config --global alias.attributes "!f() { cat <<'EOF' ... }; f"  # 顯示建議的 .gitattributes 檔案內容
 
 # 必須是 Windows 平台才會執行以下設定
 git config --global alias.ignore "!gi() { curl -sL https://www.gitignore.io/api/$@ ;}; gi"
@@ -164,6 +174,24 @@ git config --global core.editor notepad
     - 撤銷最後一次 commit
     - 保留所有檔案變更 (變更會回到 unstaged 狀態)
     - 適合用於修正 commit 訊息或重新整理變更
+
+6. `alias.attributes` - 顯示建議的 .gitattributes 檔案內容
+
+    此工具會自動設定 `git attributes` 命令,可快速查看本工具建議的 `.gitattributes` 檔案內容:
+
+    ```sh
+    git attributes  # 顯示建議的 .gitattributes 內容
+    ```
+
+    使用範例:
+
+    ```sh
+    # 直接將內容輸出到 .gitattributes 檔案
+    git attributes > .gitattributes
+    
+    # 或先查看內容
+    git attributes
+    ```
 
 ## .gitattributes 設定建議
 

@@ -165,11 +165,178 @@ Options:
     await cmdWithConfirm("git config --global alias.lg   \"log --graph --pretty=format:'%Cred%h%Creset %ad |%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset [%Cgreen%an%Creset]' --abbrev-commit --date=short\"", interactive, ask);
     await cmdWithConfirm("git config --global alias.alias \"config --get-regexp ^alias\\.\"", interactive, ask);
 
+    // Helper function for escaping single quotes in shell strings
+    const escapeForSingleQuotes = (s) => s.replace(/'/g, `'\\''`);
+
+    // --- add: alias.attributes (cross-platform) ---
+    const aliasAttributes = `!f() { cat <<'EOF'
+# --- 基本：自動偵測文字檔並正規化至 LF（倉庫內） ---
+* text=auto
+
+# --- 一致化 LF（跨平台工具與 CI 友善） ---
+*.sh         text eol=lf
+*.bash       text eol=lf
+*.zsh        text eol=lf
+*.fish       text eol=lf
+Makefile     text eol=lf
+Dockerfile   text eol=lf
+.dockerignore text eol=lf
+.editorconfig text eol=lf
+.gitattributes text eol=lf
+.gitignore   text eol=lf
+*.md         text eol=lf
+*.txt        text eol=lf
+*.json       text eol=lf
+*.jsonc      text eol=lf
+*.yaml       text eol=lf
+*.yml        text eol=lf
+*.toml       text eol=lf
+*.ini        text eol=lf
+*.cfg        text eol=lf
+*.properties text eol=lf
+*.env        text eol=lf
+*.rc         text eol=lf
+
+# 程式碼檔案
+*.c          text eol=lf
+*.h          text eol=lf
+*.cpp        text eol=lf
+*.hpp        text eol=lf
+*.cc         text eol=lf
+*.cs         text eol=lf
+*.go         text eol=lf
+*.java       text eol=lf
+*.kt         text eol=lf
+*.kts        text eol=lf
+*.js         text eol=lf
+*.jsx        text eol=lf
+*.ts         text eol=lf
+*.tsx        text eol=lf
+*.mjs        text eol=lf
+*.cjs        text eol=lf
+*.py         text eol=lf
+*.rb         text eol=lf
+*.php        text eol=lf
+*.rs         text eol=lf
+*.swift      text eol=lf
+*.m          text eol=lf
+*.mm         text eol=lf
+*.scala      text eol=lf
+*.r          text eol=lf
+*.pl         text eol=lf
+*.lua        text eol=lf
+*.gradle     text eol=lf
+
+# 標記與前端相關
+*.css        text eol=lf
+*.scss       text eol=lf
+*.less       text eol=lf
+*.html       text eol=lf
+*.xhtml      text eol=lf
+*.xml        text eol=lf
+*.svg        text eol=lf
+
+# --- Windows 專用腳本與專案檔案：檢出時使用 CRLF ---
+*.bat        text eol=crlf
+*.cmd        text eol=crlf
+*.ps1        text eol=crlf
+*.sln        text eol=crlf
+*.vcxproj    text eol=crlf
+*.vcproj     text eol=crlf
+*.csproj     text eol=crlf
+*.vbproj     text eol=crlf
+*.props      text eol=crlf
+*.targets    text eol=crlf
+
+# --- 二進位檔案：停用行尾與 diff ---
+# 影像
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+*.psd  binary
+*.ai   binary
+*.eps  binary
+
+# 影音
+*.mp3  binary
+*.wav  binary
+*.flac binary
+*.ogg  binary
+*.mp4  binary
+*.mov  binary
+*.avi  binary
+*.mkv  binary
+
+# 字型
+*.ttf  binary
+*.otf  binary
+*.woff binary
+*.woff2 binary
+
+# 文件與試算表
+*.pdf  binary
+*.doc  binary
+*.docx binary
+*.xls  binary
+*.xlsx binary
+*.ppt  binary
+*.pptx binary
+
+# 壓縮與封裝
+*.zip  binary
+*.7z   binary
+*.rar  binary
+*.gz   binary
+*.bz2  binary
+*.tar  binary
+*.jar  binary
+*.apk  binary
+*.ipa  binary
+
+# 執行檔與目標檔
+*.exe  binary
+*.dll  binary
+*.pdb  binary
+*.so   binary
+*.dylib binary
+*.a    binary
+*.lib  binary
+*.o    binary
+
+# 資料庫與快取
+*.sqlite binary
+*.db     binary
+
+# --- 降噪：縮小無意義 diff ---
+*.min.js -diff
+*.min.css -diff
+*.map    -diff
+
+# --- 選用：Git LFS（如已啟用，再解除註解） ---
+#*.psd filter=lfs diff=lfs merge=lfs -text
+#*.mp4 filter=lfs diff=lfs merge=lfs -text
+#*.zip filter=lfs diff=lfs merge=lfs -text
+
+# --- 選用：打包時不包含開發輔助檔 ---
+#/.github        export-ignore
+#/.gitignore     export-ignore
+#/.gitattributes export-ignore
+#/.editorconfig  export-ignore
+EOF
+}; f`;
+    
+    if (os === 'win32') {
+        await cmdWithConfirm(`git config --global alias.attributes "${aliasAttributes.replace(/"/g, '\\"')}"`, interactive, ask);
+    } else {
+        await cmdWithConfirm(`git config --global alias.attributes '${escapeForSingleQuotes(aliasAttributes)}'`, interactive, ask);
+    }
+
     // --- add: alias.ac / alias.undo (cross-platform) ---
     const aliasAc = `!f() { if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then exit 0; fi; if ! command -v aichat >/dev/null 2>&1; then exit 0; fi; if git diff --cached --quiet; then if git diff --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then exit 0; fi; git add -A; fi; diff=$(git diff --cached --diff-filter=d --ignore-all-space ':(exclude)*.min.js' ':(exclude)*.min.css' ':(exclude)*.min.*.js' ':(exclude)*.min.*.css' ':(exclude)*-min.js' ':(exclude)*-min.css' ':(exclude)*.bundle.js' ':(exclude)*.bundle.min.js'); if [ -z "$diff" ]; then echo "沒有可分析的變更內容（可能全部為二進位檔案或已排除的檔案）"; exit 0; fi; char_count=$(printf "%s" "$diff" | wc -c); if [ "$char_count" -gt 50000 ]; then echo "變更內容過大（超過 50,000 字元），無法產生變更摘要。請考慮將變更拆分為多個較小的 commit。"; exit 0; fi; msg=$(printf "%s" "$diff" | aichat "依據 diff 產生高解析度、技術導向、精準且簡潔的繁體中文 Git commit 訊息。採用 Conventional Commits 1.0.0 格式撰寫。不得包含多餘語句，只輸出 commit title 與必要的 body。"); git commit -m "$msg" && git --no-pager log -1; }; f`;
     const aliasUndo = `!f() { if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then echo "[undo] skip: not a git repository"; exit 0; fi; echo "[undo] Undo Last Commit: git reset HEAD~"; git reset HEAD~; }; f`;
-
-    const escapeForSingleQuotes = (s) => s.replace(/'/g, `'\\''`);
 
     if (os === 'win32') {
         await cmdWithConfirm(`git config --global alias.ac "${aliasAc.replace(/"/g, '\\"')}"`, interactive, ask);
