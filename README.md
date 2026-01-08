@@ -151,11 +151,17 @@ git config --global core.editor notepad
 
     此工具會自動設定 `git ac` 命令,當你的工作目錄有變更時,它會:
     - 自動偵測是否有已暫存 (staged) 的變更,若無則自動執行 `git add -A`
+    - 顯示已排除的檔案清單（刪除的檔案、壓縮檔案）
+    - 顯示納入 AI 分析的檔案清單（新增、修改、重新命名的檔案）
     - 呼叫 `aichat` 工具分析 diff 內容
     - 使用 AI 產生符合 Conventional Commits 1.0.0 格式的繁體中文 commit 訊息
     - 自動執行 commit 並顯示最近一次的 commit log
 
     **前置需求**: 需要先安裝 [aichat](https://github.com/sigoden/aichat) 命令列工具
+
+    **排除規則**:
+    - 刪除的檔案 (不納入 AI 分析,但會列出檔名)
+    - 壓縮檔案,如 `*.min.js`、`*.min.css`、`*.bundle.js` 等 (不納入 AI 分析,但會列出檔名)
 
     ```sh
     # 使用範例
